@@ -18,9 +18,10 @@ availnginxfile = "/etc/nginx/sites-available/#{site}"
 enablednginxfile = "/etc/nginx/sites-enabled/#{site}"
 
 # Write File
-File.symlink( availnginxfile, enablednginxfile ) 
-unless File.exists?( enablednginxfile ){
-	puts "File Exists"
-}
+if File.exist?( enablednginxfile )
+	File.symlink( availnginxfile, enablednginxfile ) 
+else
+	puts "Site already enabled"
+end
 
 # Finished
