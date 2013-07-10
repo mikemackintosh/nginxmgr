@@ -1,0 +1,25 @@
+#!/usr/bin/ruby -w
+
+# Disable Messages
+$VERBOSE=false
+
+# Include fileutils
+require 'fileutils'
+
+site = ARGV.first
+
+# Print Banner
+puts "## Site Disabler for Bakery Server ##"
+puts "Disable nginx site: #{site}"
+
+# Nginx Config File Path
+enablednginxfile = "/etc/nginx/sites-enabled/#{site}"
+
+# Write File
+if File.exists?( enablednginxfile )
+  File.delete( enablednginxfile )
+  puts "Done! Site disabled
+else
+	puts "Note: Site is not enabled"
+end
+# Finished
