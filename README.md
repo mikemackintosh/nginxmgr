@@ -3,6 +3,13 @@ nginxmgr
 
 Management tool for nginx
 
+## Installation:
+
+    cd /usr/local
+    sudo git clone https://github.com/mikemackintosh/nginxmgr
+    cd nginxmgr
+    sudo chmod +x n*
+
 ## Usage:
 
 #### ncreatesite
