@@ -1,0 +1,86 @@
+#!/usr/bin/ruby -w
+
+# Disable Messages
+$VERBOSE=false
+
+# Include fileutils
+require 'fileutils'
+
+# Directories to Skel
+skeldirs = ["web", "logs"]
+
+# Set Base Dir
+basedir = "/var/www/"
+
+# Print Banner
+puts "## Creating nginx Site for Bakery Server ##"
+
+# Get Domain Name
+puts "Domain Name: " 
+domain = gets.chomp
+
+# If multi exists, grab first
+if domain.include? " "
+  server_name = domain
+	domains = domain.split
+	domain = domains.first
+	puts "Creating domain #{domains.first}"
+else
+	server_name = domain
+	puts "Creating domain #{domain}"
+end
+
+# Loop Through Skel Dirs
+skeldirs.each{ |dir|
+	# Set Path
+	path = "#{basedir}#{domain}/#{dir}"
+	# Create Directories
+	FileUtils.mkdir_p( path ) unless File.exists?( path )
+}
+
+nginxtemplate = <<eos
+server {
+
+	listen   80; 
+
+	root /var/www/#{domain}/web;
+	
+	server_name #{server_name};
+
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to index.html
+		try_files $uri $uri/ /index.php;
+		# Uncomment to enable naxsi on this location
+		# include /etc/nginx/naxsi.rules
+	}
+
+	location ~ ^/index.php {
+            fastcgi_pass   unix:/var/run/php-fpm.sock;
+            fastcgi_param  SCRIPT_FILENAME  $fastcgi_script_name;
+            include        fastcgi_params;
+
+	}
+
+        location ~ \.php$ {
+            fastcgi_pass   unix:/var/run/php-fpm.sock;
+            fastcgi_param  SCRIPT_FILENAME  $fastcgi_script_name;
+            include        fastcgi_params;
+        }
+
+}
+eos
+
+# Nginx Config File Path
+nginxfile = "/etc/nginx/sites-available/#{domain}"
+
+# Write File
+File.open( nginxfile, 'w') { |file|
+
+	file.write( nginxtemplate )
+	
+} unless File.exists?( nginxfile ){
+	puts "File Exists"
+}
+
+# Finished
