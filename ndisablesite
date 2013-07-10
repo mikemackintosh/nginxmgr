@@ -18,7 +18,7 @@ enablednginxfile = "/etc/nginx/sites-enabled/#{site}"
 # Write File
 if File.exists?( enablednginxfile )
   File.delete( enablednginxfile )
-  puts "Done! Site disabled
+  puts "Done! Site disabled"
 else
 	puts "Note: Site is not enabled"
 end
