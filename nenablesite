@@ -1,0 +1,29 @@
+#!/usr/bin/ruby -w
+
+# Disable Messages
+$VERBOSE=false
+
+# Include fileutils
+require 'fileutils'
+
+site = ARGV.first
+
+# Print Banner
+puts "## Site Enabler for Bakery Server ##"
+puts "Enable nginx site: #{site}"
+
+# Nginx Config File Path
+availnginxfile = "/etc/nginx/sites-available/#{site}"
+
+enablednginxfile = "/etc/nginx/sites-enabled/#{site}"
+
+# Write File
+File.open( enablednginxfile, 'w') { |file|
+
+  file.write( File.read( availnginxfile ) )
+	
+} unless File.exists?( enablednginxfile ){
+	puts "File Exists"
+}
+
+# Finished
