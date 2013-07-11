@@ -5,12 +5,13 @@ $VERBOSE=false
 
 # Include fileutils
 require 'fileutils'
+require 'open3'
 
 site = ARGV.first
 
 # Print Banner
 puts "## Site Disabler for Bakery Server ##"
-puts "Disable nginx site: #{site}"
+puts "Disabling nginx site: #{site}"
 
 # Nginx Config File Path
 enablednginxfile = "/etc/nginx/sites-enabled/#{site}"
@@ -18,8 +19,9 @@ enablednginxfile = "/etc/nginx/sites-enabled/#{site}"
 # Write File
 if File.exists?( enablednginxfile )
   File.delete( enablednginxfile )
-  puts "Done! Site disabled"
+  system("/etc/init.d/nginx force-reload")
+  puts "[ Done! ]"
 else
-	puts "Note: Site is not enabled"
+  puts "[ Failed ] Failed Site not enabled"
 end
 # Finished

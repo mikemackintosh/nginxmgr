@@ -5,6 +5,7 @@ $VERBOSE=false
 
 # Include fileutils
 require 'fileutils'
+require 'open3'
 
 site = ARGV.first
 
@@ -18,10 +19,21 @@ availnginxfile = "/etc/nginx/sites-available/#{site}"
 enablednginxfile = "/etc/nginx/sites-enabled/#{site}"
 
 # Write File
-if !File.exist?( enablednginxfile )
-	File.symlink( availnginxfile, enablednginxfile ) 
-else
+if File.exists?( enablednginxfile )
 	puts "Site already enabled"
+else
+	File.symlink( availnginxfile, enablednginxfile ) 
+
+	result = system('/etc/init.d/nginx configtest')
+	
+	if result
+		system("/etc/init.d/nginx force-reload")
+	else
+		File.delete( enablednginxfile )
+
+		puts("Failed")
+	end
+
 end
 
 # Finished
