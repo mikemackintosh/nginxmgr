@@ -73,3 +73,13 @@ The `-D`, `--delete` switch will remove your domains configuration from nginx, r
     The www directory for this site has been moved to: '/var/www//www.testing2.com.old'
     [ Done! ]
     Thank you and have a nice day!
+    
+## Errors
+
+If you receive the following error:
+
+    /usr/lib/ruby/1.9.1/rubygems/custom_require.rb:36:in `require': cannot load such file -- micro-optparse (LoadError)
+        from /usr/lib/ruby/1.9.1/rubygems/custom_require.rb:36:in `require'
+	    from /usr/bin/nginxmgr:5:in `<main>'
+
+Make sure you execute `sudo gem install micro-optparse`. This will install the missing dependency.
