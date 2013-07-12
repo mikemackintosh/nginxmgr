@@ -1,0 +1,235 @@
+#!/usr/bin/ruby -w
+
+# Include Require
+require 'fileutils'
+require 'micro-optparse'
+
+# Set Options       
+options = Parser.new do |p|
+  p.banner = "nginxmgr: by Zyp.io"
+  p.version = "nginxmgr version 1.1a"
+  p.option :ip, "set virtual host ip address", :default => "*"
+  p.option :create, "create a site supplying the server name string", :default => [], :short => "c"
+  p.option :enable, "enable a site supplying the server name string", :short => "e", :value_matches => /.*/, :default => ""
+  p.option :disable, "disable a site supplying the server name string", :short => "d", :value_matches => /.*/, :default => ""
+  p.option :delete, "delete a site supplying the server name string", :short => "D", :value_matches => /.*/, :default => ""
+end.process!
+
+# Directories to Skel
+skeldirs = ["web", "logs"]
+
+# Set Base Dir
+@basedir = "/var/www/"
+
+# Function:
+# 	Enable Site 
+# 	@param site
+#
+def enable_site( site )
+
+	# Enabling 
+	puts "Enabling site: #{site}"
+
+	# Nginx Config File Path
+	availnginxfile = "/etc/nginx/sites-available/#{site}"
+	enablednginxfile = "/etc/nginx/sites-enabled/#{site}"
+
+	# Write File
+	if File.exists?( enablednginxfile )
+		puts "[ Failed ] This site is already enabled"
+	else
+
+		# Symlink the file
+		File.symlink( availnginxfile, enablednginxfile ) 
+
+		# Execute a configtest
+		result = system('/etc/init.d/nginx configtest')
+		
+		# If the configtest was successful
+		if result
+			
+			# Reload nginx
+			system("/etc/init.d/nginx force-reload")
+
+			# Verbose
+			puts("[ Completed ] This site has been enabled and nginx reloaded")
+		
+		else
+
+			# delete the symlinked file
+			File.delete( enablednginxfile )
+
+			puts("[ Failed ] Config syntax check failed")
+
+		end
+
+	end
+
+end
+
+# Function:
+# 	Disable Site 
+# 	@param site
+#
+def disable_site( site )
+
+	# Nginx Config File Path
+	enablednginxfile = "/etc/nginx/sites-enabled/#{site}"
+
+	# Check if config file exists
+	if File.exists?( enablednginxfile )
+
+		# Delete file
+	  	File.delete( enablednginxfile )
+	  	system("/etc/init.d/nginx force-reload")
+	  	puts "[ Done! ]"
+
+	else
+	  puts "[ Failed ] Site not enabled"
+	end
+
+end
+
+
+# Function:
+# 	Delete Site 
+# 	@param site
+#
+def delete_site( site )
+	
+	# Disable the site first
+	disable_site( site )
+
+	# Nginx Config File Path
+	availablenginxfile = "/etc/nginx/sites-available/#{site}"
+
+	# Check if config file exists
+	if File.exists?( availablenginxfile )
+
+		# Delete file
+	  	File.delete( availablenginxfile )
+	  	system("/etc/init.d/nginx force-reload")
+
+	else
+	  puts "[ Failed ] Site configuration does not exists"
+	end
+
+	# Set wwwdir var
+	wwwdir = "#{@basedir}/#{site}"
+	if File.exists?( wwwdir )
+
+	  	FileUtils.mv( wwwdir , "#{wwwdir}.old")
+	  	puts "The www directory for this site has been moved to: '#{@basedir}/#{site}.old'"
+	  	puts "[ Done! ]"
+	else
+		  puts "[ Failed ] This sites' www directory does not exists"	
+	end
+
+end
+
+# severity = options.fetch(:severity)
+if options[:create].any?
+
+	# If multi exists, grab first
+	if options[:create].count > 1
+	  	server_name = options[:create].join(" ")
+		domain = options[:create].first
+	else
+		server_name = domain
+	end
+
+	# Let the user know whats going on
+	puts "Creating site: #{domain}"
+
+	# Loop Through Skel Dirs
+	begin
+		skeldirs.each{ |dir|
+			
+			# Set Path
+			path = "#{@basedir}#{domain}/#{dir}"
+
+			# Create Directories
+			FileUtils.mkdir_p( path ) unless File.exists?( path )
+
+		}
+	rescue => e
+		puts "[ Error ] There was an error making the directory structure. Try running as root"
+		exit
+	end
+
+nginxtemplate = <<eos
+server {
+
+	# Create Listener
+	listen #{options[:ip]}:80; 
+
+	# Add root
+	root /var/www/#{domain}/web;
+	
+	# Set Servername
+	server_name #{server_name};
+
+	# Root dir location
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to index.php
+		try_files $uri $uri/ /index.php;
+	}
+
+	# If index.php
+	location ~ ^/index.php {
+            fastcgi_pass   unix:/var/run/php-fpm.sock;
+            fastcgi_param  SCRIPT_FILENAME  $fastcgi_script_name;
+            include        fastcgi_params;
+
+	}
+
+	# If php file
+    location ~ \.php$ {
+            fastcgi_pass   unix:/var/run/php-fpm.sock;
+            fastcgi_param  SCRIPT_FILENAME  $fastcgi_script_name;
+            include        fastcgi_params;
+    }
+
+}
+eos
+
+	# Nginx Config File Path
+	nginxfile = "/etc/nginx/sites-available/#{domain}"
+
+	# Write File
+	File.open( nginxfile, 'w') { |file|
+
+		file.write( nginxtemplate )
+		puts "[ Completed ] Site has been created"
+
+		enable_site( domain )
+		
+	} unless File.exists?( nginxfile ){
+
+		puts "[Error] File Exists"
+
+	}
+
+end
+
+# Check if we are enabling
+if !options[:enable].empty?
+
+	enable_site( options[:enable] )
+
+# Disable Site
+elsif !options[:disable].empty?
+
+	disable_site( options[:disable] )
+
+# Delete Site
+elsif !options[:delete].empty?
+
+	delete_site( options[:delete] )
+
+end
+
+puts "Thank you and have a nice day!"
+
+# Finished
