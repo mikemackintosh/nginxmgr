@@ -25,7 +25,7 @@ Here is a copy of the usage info:
         -h, --help                       Show this message
         -v, --version                    Print version
 
-#### To Create a Site
+## To Create a Site
 
 To use the utility, you would run the following command:
 
@@ -45,7 +45,7 @@ This would create a directory in `/var/www/www.example.com` (your site name is t
 By default the listening IP address and port in `*:80`. You can change this by passing option `-i ip.ad.dr.ess`. 
 
 
-#### To Enable a Site
+## To Enable a Site
 
 This utility will create a symbolic link from the `sites-available` dir to `sites-enabled`, run `configtest` on nginx, and restart nginx:
 
@@ -56,7 +56,7 @@ This utility will create a symbolic link from the `sites-available` dir to `site
     [ Completed ] This site has been enabled and nginx reloaded
     Thank you and have a nice day!
 
-#### To Disable a Site
+## To Disable a Site
 
 This utility will delete the symbolic link from the `sites-enabled` dir, run `configtest` on nginx, and restart it:
 
@@ -65,7 +65,7 @@ This utility will delete the symbolic link from the `sites-enabled` dir, run `co
     [ Done! ]
     Thank you and have a nice day!
 
-#### To Delete a Site
+## To Delete a Site
 
 The `-D`, `--delete` switch will remove your domains configuration from nginx, restart if it is currently active, and move the directory  `/var/www/domain` to `/var/www/domain.old`
 
