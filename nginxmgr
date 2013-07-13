@@ -166,6 +166,9 @@ server {
 	# Add root
 	root /var/www/#{domain}/web;
 	
+	# Set index to prevent 403
+	index index.php;
+
 	# Set Servername
 	server_name #{server_name};
 
