@@ -130,13 +130,11 @@ end
 # severity = options.fetch(:severity)
 if options[:create].any?
 
-	# If multi exists, grab first
-	if options[:create].count > 1
-	  	server_name = options[:create].join(" ")
-		domain = options[:create].first
-	else
-		server_name = domain
-	end
+	# Set server_name variable
+  	server_name = options[:create].join(" ")
+
+  	# Set domain name variable
+	domain = options[:create].first
 
 	# Let the user know whats going on
 	puts "Creating site: #{domain}"
